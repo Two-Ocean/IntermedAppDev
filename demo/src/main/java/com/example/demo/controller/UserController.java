@@ -8,24 +8,45 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/AssignmentUsers")
+@RequestMapping("/users")
 public class UserController {
+
     @Autowired
     private UserService userService;
+
+    // Create a new user
     @PostMapping
-    public void addUser(@RequestBody User user){
-        userService.addUser(user);
+    public User createUser(@RequestBody User user) {
+        return userService.createUser(user);
     }
+
+    // Retrieve all users
     @GetMapping
-    public List<User> getUsers(){
-        return userService.getUsers();
+    public List<User> getAllUsers() {
+        return userService.getAllUsers();
     }
-    @PutMapping
-    public void updateUser(@RequestBody User user){
-        userService.updateUser(user);
+
+    // Retrieve a user by ID
+    @GetMapping("/{id}")
+    public User getUserById(@PathVariable Integer id) {
+        return userService.getUserById(id);
     }
-    @DeleteMapping("/{userID}")
-    public void deleteUser(@PathVariable Integer attID){
-        userService.deleteUser(attID);
+
+    // Update user profile
+    @PutMapping("/{id}")
+    public User updateUser(@PathVariable Integer id, @RequestBody User updatedUser) {
+        return userService.updateUser(id, updatedUser);
+    }
+
+    // Delete a user
+    @DeleteMapping("/{id}")
+    public void deleteUser(@PathVariable Integer id) {
+        userService.deleteUser(id);
+    }
+
+    // Reset password
+    @PostMapping("/{id}/reset-password")
+    public void resetPassword(@PathVariable Integer id, @RequestBody String newPassword) {
+        userService.resetPassword(id, newPassword);
     }
 }

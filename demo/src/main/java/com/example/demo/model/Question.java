@@ -1,42 +1,50 @@
 package com.example.demo.model;
 
+import jakarta.persistence.*;
 import java.util.List;
 
+@Entity
 public class Question {
-    private String type;
-    private String difficulty;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer questionID;
+
+    @Enumerated(EnumType.STRING)
+    private Difficulty difficulty;
+
     private String category;
+
+    @Column(nullable = false)
     private String question;
-    private String correct_answer;
 
-    List<String> incorrect_answers;
+    @Column(nullable = false)
+    private String correctAnswer;
 
-    public Question(){
+    @ElementCollection
+    @CollectionTable(name = "incorrect_answers", joinColumns = @JoinColumn(name = "question_id"))
+    @Column(name = "incorrect_answer")
+    private List<String> incorrectAnswers;
 
+    @ManyToOne
+    private Quiz quiz; // Link to the Quiz model
+
+    // Constructors
+    public Question() {}
+
+    // Getters and Setters
+    public Integer getQuestionID() {
+        return questionID;
     }
 
-    public Question(String type, String difficulty, String category, String question, String correct_answer, List<String> incorrect_answers) {
-        this.type = type;
-        this.difficulty = difficulty;
-        this.category = category;
-        this.question = question;
-        this.correct_answer = correct_answer;
-        this.incorrect_answers = incorrect_answers;
+    public void setQuestionID(Integer questionID) {
+        this.questionID = questionID;
     }
 
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public String getDifficulty() {
+    public Difficulty getDifficulty() {
         return difficulty;
     }
 
-    public void setDifficulty(String difficulty) {
+    public void setDifficulty(Difficulty difficulty) {
         this.difficulty = difficulty;
     }
 
@@ -56,19 +64,27 @@ public class Question {
         this.question = question;
     }
 
-    public String getCorrect_answer() {
-        return correct_answer;
+    public String getCorrectAnswer() {
+        return correctAnswer;
     }
 
-    public void setCorrect_answer(String correct_answer) {
-        this.correct_answer = correct_answer;
+    public void setCorrectAnswer(String correctAnswer) {
+        this.correctAnswer = correctAnswer;
     }
 
-    public List<String> getIncorrect_answers() {
-        return incorrect_answers;
+    public List<String> getIncorrectAnswers() {
+        return incorrectAnswers;
     }
 
-    public void setIncorrect_answers(List<String> incorrect_answers) {
-        this.incorrect_answers = incorrect_answers;
+    public void setIncorrectAnswers(List<String> incorrectAnswers) {
+        this.incorrectAnswers = incorrectAnswers;
+    }
+
+    public Quiz getQuiz() {
+        return quiz;
+    }
+
+    public void setQuiz(Quiz quiz) {
+        this.quiz = quiz;
     }
 }

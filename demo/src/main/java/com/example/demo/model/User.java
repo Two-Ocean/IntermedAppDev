@@ -1,31 +1,46 @@
 package com.example.demo.model;
 
-public class User {
+import jakarta.persistence.*;
+import java.io.Serializable;
+
+@Entity
+public class User implements Serializable {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer userID;
+
+    @Column(nullable = false, unique = true)
     private String email;
+
+    @Column(nullable = false, unique = true)
     private String username;
+
+    @Column(nullable = false)
     private String password;
+
     private Integer points;
-    private String role;
 
-    public User() {
+    @Enumerated(EnumType.STRING)
+    private UserType userType;
 
-    }
+    @Column(nullable = false)
+    private String firstName;
 
-    public User(int userID, String email, String username, String password, Integer points, String role) {
-        this.userID = userID;
-        this.email = email;
-        this.username = username;
-        this.password = password;
-        this.points = points;
-        this.role = role;
-    }
+    @Column(nullable = false)
+    private String lastName;
 
-    public int getUserID() {
+    private String profilePicture; // Optional field
+
+    // New attributes of your choice
+    private String bio; // A short biography
+    private String phoneNumber; // For contact
+
+    // Getters and Setters
+    public Integer getUserID() {
         return userID;
     }
 
-    public void setUserID(int userID) {
+    public void setUserID(Integer userID) {
         this.userID = userID;
     }
 
@@ -53,20 +68,59 @@ public class User {
         this.password = password;
     }
 
-    public int getPoints() {
+    public Integer getPoints() {
         return points;
     }
-
 
     public void setPoints(Integer points) {
         this.points = points;
     }
 
-    public String getRole() {
-        return role;
+    public UserType getUserType() {
+        return userType;
     }
 
-    public void setRole(String role) {
-        this.role = role;
+    public void setUserType(UserType userType) {
+        this.userType = userType;
+    }
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    public String getProfilePicture() {
+        return profilePicture;
+    }
+
+    public void setProfilePicture(String profilePicture) {
+        this.profilePicture = profilePicture;
+    }
+
+    public String getBio() {
+        return bio;
+    }
+
+    public void setBio(String bio) {
+        this.bio = bio;
+    }
+
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
+
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
     }
 }
