@@ -1,7 +1,6 @@
 package com.example.demo.controller;
 
 import com.example.demo.model.Quiz;
-import com.example.demo.model.Question;
 import com.example.demo.service.QuizService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -16,9 +15,9 @@ public class QuizController {
     private QuizService quizService;
 
     // Create a new quiz
-    @PostMapping
-    public Quiz createQuiz(@RequestBody Quiz quiz) {
-        return quizService.createQuiz(quiz);
+    @PostMapping("/{userId}")
+    public Quiz createQuiz(@RequestBody Quiz quiz, @PathVariable Integer userId) {
+        return quizService.createQuiz(quiz, userId);
     }
 
     // Get all quizzes
@@ -27,27 +26,19 @@ public class QuizController {
         return quizService.getAllQuizzes();
     }
 
-    // Get a specific quiz by ID
-    @GetMapping("/{id}")
-    public Quiz getQuizById(@PathVariable Integer id) {
-        return quizService.getQuizById(id);
+    // Participate in a quiz
+    @PostMapping("/{quizId}/participate/{userId}")
+    public Quiz participateInQuiz(@PathVariable Integer quizId, @PathVariable Integer userId) {
+        return quizService.participateInQuiz(quizId, userId);
     }
 
-    // Update a quiz
-    @PutMapping("/{id}")
-    public Quiz updateQuiz(@PathVariable Integer id, @RequestBody Quiz updatedQuiz) {
-        return quizService.updateQuiz(id, updatedQuiz);
+    // Update a quiz tournament
+    @PutMapping("/{quizId}")
+    public Quiz updateQuiz(@PathVariable Integer quizId, @RequestBody Quiz updatedQuiz) {
+        return quizService.updateQuiz(quizId, updatedQuiz);
     }
-
-    // Delete a quiz
-    @DeleteMapping("/{id}")
-    public void deleteQuiz(@PathVariable Integer id) {
-        quizService.deleteQuiz(id);
-    }
-
-    // Add questions to a quiz
-    @PostMapping("/{id}/questions")
-    public Quiz addQuestionsToQuiz(@PathVariable Integer id, @RequestBody List<Question> questions) {
-        return quizService.addQuestionsToQuiz(id, questions);
+    @DeleteMapping("/{quizId}")
+    public String deleteQuiz(@PathVariable Integer quizId) {
+        return quizService.deleteQuiz(quizId);
     }
 }

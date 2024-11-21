@@ -1,15 +1,14 @@
 package com.example.demo.service;
 
-import com.example.demo.model.Question;
 import com.example.demo.model.Quiz;
 import com.example.demo.model.User;
+import com.example.demo.model.UserType;
 import com.example.demo.repos.QuizRepo;
 import com.example.demo.repos.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class QuizService {
@@ -23,14 +22,22 @@ public class QuizService {
     @Autowired
     private EmailService emailService;
 
-    public Quiz createQuiz(Quiz quiz) {
+    public Quiz createQuiz(Quiz quiz, Integer userId) {
+        User user = userRepo.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        if (!user.getUserType().equals(UserType.ADMIN)) {
+            throw new IllegalArgumentException("Only ADMIN users can create quizzes.");
+        }
+
         Quiz savedQuiz = quizRepo.save(quiz);
+
         // Notify all non-admin users
         List<User> users = userRepo.findAll();
         users.stream()
-                .filter(user -> user.getUserType().name().equalsIgnoreCase("PLAYER"))
-                .forEach(user -> emailService.sendEmail(
-                        user.getEmail(),
+                .filter(u -> u.getUserType().equals(UserType.PLAYER)) // Exclude ADMIN users
+                .forEach(u -> emailService.sendEmail(
+                        u.getEmail(),
                         "New Quiz Announcement",
                         "A new quiz \"" + savedQuiz.getName() + "\" is available from "
                                 + savedQuiz.getStartDate() + " to " + savedQuiz.getEndDate() + "."));
@@ -41,33 +48,40 @@ public class QuizService {
         return quizRepo.findAll();
     }
 
-    public Quiz getQuizById(Integer id) {
-        return quizRepo.findById(id).orElse(null);
-    }
+    public Quiz participateInQuiz(Integer quizId, Integer userId) {
+        User user = userRepo.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-    public Quiz updateQuiz(Integer id, Quiz updatedQuiz) {
-        Optional<Quiz> quizOptional = quizRepo.findById(id);
-        if (quizOptional.isPresent()) {
-            Quiz quiz = quizOptional.get();
-            quiz.setName(updatedQuiz.getName());
-            quiz.setStartDate(updatedQuiz.getStartDate());
-            quiz.setEndDate(updatedQuiz.getEndDate());
-            return quizRepo.save(quiz);
+        if (!user.getUserType().equals(UserType.PLAYER)) {
+            throw new IllegalArgumentException("Only PLAYER users can participate in quizzes.");
         }
-        return null;
-    }
 
-    public void deleteQuiz(Integer id) {
-        quizRepo.deleteById(id);
-    }
+        Quiz quiz = quizRepo.findById(quizId)
+                .orElseThrow(() -> new IllegalArgumentException("Quiz not found"));
 
-    public Quiz addQuestionsToQuiz(Integer id, List<Question> questions) {
-        Optional<Quiz> quizOptional = quizRepo.findById(id);
-        if (quizOptional.isPresent()) {
-            Quiz quiz = quizOptional.get();
-            quiz.getQuestions().addAll(questions);
-            return quizRepo.save(quiz);
+        if (quiz.getStartDate().isAfter(java.time.LocalDate.now()) ||
+                quiz.getEndDate().isBefore(java.time.LocalDate.now())) {
+            throw new IllegalArgumentException("Quiz is not currently active.");
         }
-        return null;
+
+        return quiz;
+    }
+    public Quiz updateQuiz(Integer quizId, Quiz updatedQuiz) {
+        Quiz existingQuiz = quizRepo.findById(quizId)
+                .orElseThrow(() -> new IllegalArgumentException("Quiz not found"));
+
+        // Update fields
+        existingQuiz.setName(updatedQuiz.getName());
+        existingQuiz.setStartDate(updatedQuiz.getStartDate());
+        existingQuiz.setEndDate(updatedQuiz.getEndDate());
+
+        return quizRepo.save(existingQuiz);
+    }
+    public String deleteQuiz(Integer quizId) {
+        Quiz quiz = quizRepo.findById(quizId)
+                .orElseThrow(() -> new IllegalArgumentException("Quiz not found"));
+
+        quizRepo.delete(quiz);
+        return "Quiz deleted successfully: " + quiz.getName();
     }
 }

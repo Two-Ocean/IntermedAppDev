@@ -52,4 +52,8 @@ public class UserService {
                     "Your password has been successfully reset.");
         });
     }
+    public User findByUsername(String username) {
+        return userRepo.findByUsername(username)
+                .orElse(null);
+    }
 }
