@@ -28,6 +28,19 @@ public class Question {
     @ManyToOne
     private Quiz quiz; // Link to the Quiz model
 
+    private String answer;
+
+    public Question(Integer questionID, Difficulty difficulty, String category, String question, String correctAnswer, List<String> incorrectAnswers, Quiz quiz, String answer) {
+        this.questionID = questionID;
+        this.difficulty = difficulty;
+        this.category = category;
+        this.question = question;
+        this.correctAnswer = correctAnswer;
+        this.incorrectAnswers = incorrectAnswers;
+        this.quiz = quiz;
+        this.answer = answer;
+    }
+
     // Constructors
     public Question() {}
 
@@ -86,5 +99,13 @@ public class Question {
 
     public void setQuiz(Quiz quiz) {
         this.quiz = quiz;
+    }
+
+    public String getAnswer() {
+        return answer;
+    }
+
+    public void setAnswer(String answer) {
+        this.answer = answer;
     }
 }

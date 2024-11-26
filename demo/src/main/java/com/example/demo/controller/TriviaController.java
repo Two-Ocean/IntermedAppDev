@@ -36,4 +36,14 @@ public class TriviaController {
         return (List<Map<String, Object>>) restTemplate.getForObject(url, Map.class).get("trivia_categories");
     }
 
+    @GetMapping("/save-questions")
+    public String saveQuestions(
+            @RequestParam(defaultValue = "10") int amount,
+            @RequestParam(defaultValue = "") String category,
+            @RequestParam(defaultValue = "") String difficulty,
+            @RequestParam(defaultValue = "multiple") String type
+    ) {
+        triviaService.saveTriviaQuestionsToDb(amount, category, difficulty, type);
+        return "Questions saved to the database";
+    }
 }
