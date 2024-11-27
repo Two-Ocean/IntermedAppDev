@@ -58,21 +58,36 @@ public class UserService {
         userRepo.deleteById(id);
     }
 
-    // Reset user password
     public void resetPassword(Integer id, String newPassword) {
+        System.out.println("Fetching user with ID: " + id);
         userRepo.findById(id).ifPresentOrElse(user -> {
+            System.out.println("User found with ID: " + id);
+
+            // Encode the new password
             user.setPassword(passwordEncoder.encode(newPassword));
+            System.out.println("Password encoded successfully");
+
+            // Save the user to the database
             userRepo.save(user);
+            System.out.println("User saved successfully");
+
+            // Send email notification
             try {
                 emailService.sendEmail(user.getEmail(), "Password Reset Notification",
                         "Your password has been successfully reset.");
+                System.out.println("Password reset email sent successfully");
             } catch (Exception e) {
+                System.err.println("Failed to send password reset email: " + e.getMessage());
+                e.printStackTrace();
                 throw new RuntimeException("Failed to send password reset email", e);
             }
         }, () -> {
+            System.err.println("User not found with ID: " + id);
             throw new IllegalArgumentException("User not found with ID: " + id);
         });
     }
+
+
 
     // Find user by username
     public User findByUsername(String username) {

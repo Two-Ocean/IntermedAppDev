@@ -1,8 +1,10 @@
 package com.example.demo.controller;
 
+import com.example.demo.dto.QuizDTO;
 import com.example.demo.model.Quiz;
 import com.example.demo.service.QuizService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,11 +19,20 @@ public class QuizController {
     @Autowired
     private QuizService quizService;
 
-    // Create a new quiz
     @PostMapping("/{userId}")
-    public Quiz createQuiz(@RequestBody Quiz quiz, @PathVariable Integer userId) {
-        return quizService.createQuiz(quiz, userId);
+    public ResponseEntity<?> createQuiz(@RequestBody Quiz quiz, @PathVariable Integer userId) {
+        try {
+            Quiz createdQuiz = quizService.createQuiz(quiz, userId);
+            QuizDTO quizDTO = quizService.convertToDTO(createdQuiz);
+            return ResponseEntity.ok(quizDTO);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body("Validation Error: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred: " + e.getMessage());
+        }
     }
+
+
 
     // Get a specific quiz by ID
     @GetMapping("/{quizId}")
@@ -30,7 +41,7 @@ public class QuizController {
     }
 
     // Get all quizzes
-    @GetMapping
+    @GetMapping()
     public List<Quiz> getAllQuizzes() {
         return quizService.getAllQuizzes();
     }

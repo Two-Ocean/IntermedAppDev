@@ -1,5 +1,6 @@
 package com.example.demo.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import java.util.List;
 
@@ -26,6 +27,7 @@ public class Question {
     private List<String> incorrectAnswers;
 
     @ManyToOne
+    @JoinColumn(name = "quizID")
     private Quiz quiz; // Link to the Quiz model
 
     private String answer;

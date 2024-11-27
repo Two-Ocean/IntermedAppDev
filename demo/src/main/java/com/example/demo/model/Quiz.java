@@ -1,7 +1,10 @@
 package com.example.demo.model;
 
 import jakarta.persistence.*;
+import jakarta.persistence.criteria.CriteriaBuilder;
+
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -11,19 +14,19 @@ public class Quiz {
     private Integer quizID;
 
     @Column(nullable = false, unique = true)
-    private String name;
+    private String quizTitle;
 
     private int responseCode;
 
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Question> questions;
+    @OneToMany(mappedBy = "quiz", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Question> questions = new ArrayList<>();
 
     private LocalDate startDate;
 
     private LocalDate endDate;
 
-    @ManyToOne
-    private User createdBy; // Relationship to the admin user who created the quiz
+    @JoinColumn(name = "userID")
+    private Integer createdBy;
 
     private Integer numberOfParticipants;
 
@@ -43,12 +46,12 @@ public class Quiz {
         this.quizID = quizID;
     }
 
-    public String getName() {
-        return name;
+    public String getQuizTitle() {
+        return quizTitle;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setQuizTitle(String quizTitle) {
+        this.quizTitle = quizTitle;
     }
 
     public int getResponseCode() {
@@ -83,11 +86,11 @@ public class Quiz {
         this.endDate = endDate;
     }
 
-    public User getCreatedBy() {
+    public Integer getCreatedBy() {
         return createdBy;
     }
 
-    public void setCreatedBy(User createdBy) {
+    public void setCreatedBy(Integer createdBy) {
         this.createdBy = createdBy;
     }
 

@@ -1,12 +1,12 @@
 package com.example.demo.service;
 
-import com.example.demo.model.Question;
-import com.example.demo.model.Quiz;
-import com.example.demo.model.User;
-import com.example.demo.model.UserType;
+import com.example.demo.dto.QuestionDTO;
+import com.example.demo.dto.QuizDTO;
+import com.example.demo.model.*;
 import com.example.demo.repos.QuestionRepo;
 import com.example.demo.repos.QuizRepo;
 import com.example.demo.repos.UserRepo;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -28,8 +28,18 @@ public class QuizService {
     @Autowired
     private EmailService emailService;
 
-    // Create a new quiz
+    public QuizDTO convertToDTO(Quiz quiz) {
+        List<QuestionDTO> questionDTOs = quiz.getQuestions().stream()
+                .map(q -> new QuestionDTO(q.getQuestionID(), q.getQuestion(), q.getDifficulty().name(), q.getCategory(), q.getCorrectAnswer()))
+                .collect(Collectors.toList());
+
+        return new QuizDTO(quiz.getQuizTitle(), questionDTOs);
+    }
+
+
+    @Transactional
     public Quiz createQuiz(Quiz quiz, Integer userId) {
+        // Validate user
         User user = userRepo.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
@@ -37,27 +47,38 @@ public class QuizService {
             throw new IllegalArgumentException("Only ADMIN users can create quizzes.");
         }
 
-        Quiz savedQuiz = quizRepo.save(quiz);
-
-        // Notify all non-admin users
-        List<User> users = userRepo.findAll();
-        users.stream()
-                .filter(u -> u.getUserType().equals(UserType.PLAYER))
-                .forEach(u -> {
-                    try {
-                        emailService.sendEmail(
-                                u.getEmail(),
-                                "New Quiz Announcement",
-                                "A new quiz \"" + savedQuiz.getName() + "\" is available from "
-                                        + savedQuiz.getStartDate() + " to " + savedQuiz.getEndDate() + "."
-                        );
-                    } catch (Exception e) {
-                        System.err.println("Failed to send email to " + u.getEmail());
+        // Validate and map questions
+        List<Question> questions = quiz.getQuestions().stream()
+                .map(question -> {
+                    // Validate question ID
+                    if (question.getQuestionID() == null) {
+                        throw new IllegalArgumentException("Question ID must not be null.");
                     }
-                });
 
-        return savedQuiz;
+                    // Fetch question from DB
+                    Question existingQuestion = questionRepo.findById(question.getQuestionID())
+                            .orElseThrow(() -> new IllegalArgumentException(
+                                    "Question not found with ID: " + question.getQuestionID()));
+
+                    // Map Difficulty case-insensitively
+                    if (question.getDifficulty() != null) {
+                        existingQuestion.setDifficulty(Difficulty.fromString(question.getDifficulty().name()));
+                    }
+
+                    existingQuestion.setQuiz(quiz); // Associate question with quiz
+                    return existingQuestion;
+                })
+                .collect(Collectors.toList());
+
+        quiz.setQuestions(questions); // Set validated questions
+        quiz.setCreatedBy(user.getUserID());
+        return quizRepo.save(quiz); // Save the quiz
     }
+
+
+
+
+
 
     // Get all quizzes
     public List<Quiz> getAllQuizzes() {
@@ -94,7 +115,7 @@ public class QuizService {
         Quiz existingQuiz = getQuizById(quizId);
 
         // Update fields
-        existingQuiz.setName(updatedQuiz.getName());
+        existingQuiz.setQuizTitle(updatedQuiz.getQuizTitle());
         existingQuiz.setStartDate(updatedQuiz.getStartDate());
         existingQuiz.setEndDate(updatedQuiz.getEndDate());
 
@@ -105,7 +126,7 @@ public class QuizService {
     public String deleteQuiz(Integer quizId) {
         Quiz quiz = getQuizById(quizId);
         quizRepo.delete(quiz);
-        return "Quiz deleted successfully: " + quiz.getName();
+        return "Quiz deleted successfully: " + quiz.getQuizTitle();
     }
 
     // Get scores sorted for a quiz

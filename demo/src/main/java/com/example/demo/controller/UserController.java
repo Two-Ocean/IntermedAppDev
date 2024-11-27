@@ -63,13 +63,32 @@ public class UserController {
         return ResponseEntity.ok("User deleted successfully");
     }
 
-    // Reset password
     @PostMapping("/{id}/reset-password")
     public ResponseEntity<?> resetPassword(@PathVariable Integer id, @RequestBody Map<String, String> requestBody) {
         String newPassword = requestBody.get("newPassword");
-        userService.resetPassword(id, newPassword);
-        return ResponseEntity.ok("Password reset successfully");
+
+        // Validate input
+        if (newPassword == null || newPassword.isEmpty()) {
+            System.out.println("Bad request: New password cannot be null or empty");
+            return ResponseEntity.badRequest().body("New password cannot be null or empty");
+        }
+
+        try {
+            System.out.println("Resetting password for user ID: " + id);
+            userService.resetPassword(id, newPassword);
+            System.out.println("Password reset successful for user ID: " + id);
+            return ResponseEntity.ok("Password reset successfully");
+        } catch (IllegalArgumentException e) {
+            System.err.println("Error: User not found: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } catch (Exception e) {
+            System.err.println("Unexpected error during password reset: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred");
+        }
     }
+
+
     @PostMapping("/admin/hash-passwords")
     public ResponseEntity<?> hashPasswords() {
         userService.hashExistingPasswords();
